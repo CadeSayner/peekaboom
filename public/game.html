@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="navbar">
+        <div class="silkscreen-regular">
+            Lobby ID:
+        </div>
+        <div class="silkscreen-regular orange" id="lobbyID">
+            n/a
+        </div>
+
+        <button id="start-button" class="hidden silkscreen-regular">
+            Start Game
+        </button>
+    </div>    
+    <div class="canvas-container full-height">
+        <div class="row whitesmoke silkscreen-regular"> 
+            <div> Ammo:&nbsp </div>
+            <div id="ammo-count"> 30 </div>
+        </div>
+        <canvas id="game-canvas" width="300" height="450"> </canvas>
+    </div>
+
+    <div id="win_screen" class="container full-height hidden">
+        <div class="silkscreen-regular column">
+            <div class="whitesmoke row">
+                <div id="winner_span"> You </div>
+                <span>
+                    &nbsp
+                </span>
+                <div id="win_suffix"> Have Won!</div>
+            </div>
+            <div class="row">
+                <div id="player-1-name" class="whitesmoke">
+                    Kayla
+                </div>
+                <span>
+                    &nbsp - &nbsp
+                </span>
+                <div id="player-1-score" class="whitesmoke">
+                   10 
+                </div>
+            </div>
+            <div class="row">
+                <div id="player-2-name" class="whitesmoke">
+                    Cade
+                </div>
+                <span>
+                    &nbsp - &nbsp
+                </span>
+                <div id="player-2-score" class="whitesmoke">
+                    9
+                </div>
+            </div>
+
+            <button id="hide-button" class="silkscreen-regular hide-button"> Continue </button>
+        </div>
+    </div>
+</body>
+</html>
+
+<script src="./js/config.js"></script>
+<script type="module" src="./js/game.js"></script>
