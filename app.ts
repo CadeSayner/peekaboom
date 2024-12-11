@@ -10,7 +10,7 @@ app.use(express.static('public'));
 app.use(cors())
 const server = http.createServer(app);
 const io = new Server(server);
-const port = 3000;
+const port = 8080;
 const interval = 100;
 const lobbies : Lobby[] = [];
 const socketToPlayerMap : Map<string, {player_name : string, lobbyID : string}> = new Map();

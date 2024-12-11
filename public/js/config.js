@@ -1,1 +1,1 @@
-const api_endpoint = "https://peekaboom.netlify.app";
+const api_endpoint = "https://peekaboom.onrender.com";
