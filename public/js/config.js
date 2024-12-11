@@ -1,1 +1,1 @@
-const api_endpoint = "http://192.168.1.66:3000";
+const api_endpoint = "https://peekaboom.netlify.app";
