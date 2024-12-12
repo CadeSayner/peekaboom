@@ -293,6 +293,7 @@ window.addEventListener('touchstart', (event)=>{
         if(current_ammo  >= 1){
             fire();
             if(current_ammo === 1){
+                current_ammo = 0;
                 ammoCount.innerText = "RELOADING..."
                 setTimeout(()=>{
                     setAmmo(mag_capacity)
