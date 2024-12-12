@@ -65,7 +65,6 @@ class Vec3{
     project(vec){
         return vec.scalarProduct(vec.dot(this)/vec.sqMagnitude());
     }
-    
 }
 
 class Player{
@@ -117,6 +116,42 @@ class Player{
     }
 }
 
+class PowerUp{
+    location;
+    radius;
+   constructor(radius){
+    if(this.constructor === "PowerUp"){
+        throw new Error("This is an abstract class, this function should not be called directly");
+    }
+    let x = Math.floor( Math.random() * 300);
+    let y = Math.floor( Math.random() * 450);
+    this.location = new Vec2(x,y);
+    this.radius = radius;
+   }
+}
+
+class BulletPowerUp extends PowerUp{
+    bullets;
+    constructor(bullets){
+        super(10);
+        this.bullets = bullets; 
+    }
+
+    effect(){
+        if(mag_capacity){
+            setAmmo(mag_capacity + this.bullets);
+        } 
+    }
+
+    draw(ctx){
+        ctx.beginPath();
+        ctx.arc(this.location.x, this.location.y, this.radius/2, 0, Math.PI * 2, true);
+        ctx.fillStyle = '#89f336';
+        ctx.fill();
+    }
+}
+
+let powerups = [];
 const hideButton = document.getElementById('hide-button');
 hideButton.addEventListener('click', ()=>{
     hideWinScreen();
@@ -139,7 +174,6 @@ let player1;
 let player2;
 let mag_capacity = 6;
 let reloadingDelay = 5000;
-
 const winScreen = document.getElementById("win_screen");
 const winSpan = document.getElementById("winner_span");
 const winSuffix = document.getElementById("win_suffix");
@@ -149,12 +183,11 @@ const leaderboard_player_2_name = document.getElementById("player-2-name");
 const leaderboard_player_2_score = document.getElementById("player-2-score");
 const startButton = document.getElementById('start-button');
 const ammoCount = document.getElementById('ammo-count');
-
 let current_ammo = mag_capacity;
 ammoCount.innerText = current_ammo;
-
 let overlayShown = false;
 const created = sessionStorage.getItem("created") // are we the client that created the lobby we are about to join
+
 if(created){
     startButton.classList.add("show");
     startButton.addEventListener('click', (e)=>{
@@ -218,6 +251,7 @@ socket.on("game-update", (e)=>{
             showWinScreen();
         }
     }
+
 });
 
 function showWinScreen(){
@@ -256,14 +290,16 @@ window.addEventListener("devicemotion", (event) => {
 
 window.addEventListener('touchstart', (event)=>{
     if(gameStatus === "playing"){
-        if(current_ammo  > 1){
+        if(current_ammo  >= 1){
             fire();
-            setAmmo(current_ammo-1)
-        }else{
-            ammoCount.innerText = "RELOADING..."
-            setTimeout(()=>{
-                setAmmo(mag_capacity)
-            }, reloadingDelay);
+            if(current_ammo === 1){
+                ammoCount.innerText = "RELOADING..."
+                setTimeout(()=>{
+                    setAmmo(mag_capacity)
+                }, reloadingDelay);
+            }else{
+                setAmmo(current_ammo-1);
+            }
         }
     }
 })
@@ -286,18 +322,48 @@ function setPlayerGravity(){
     player.acceleration.y =  gravity.project(new Vec3(0,1,0)).y;
 }
 
+function drawPowerups(){
+    powerups.forEach(powerup => {
+        powerup.draw(ctx);
+    });
+}
+
+setInterval(()=>{
+    if(gameStatus === "playing"){
+        if(Math.random() > 0.35){
+            let powerup = new BulletPowerUp(10);
+            let length = powerups.push(powerup);
+            powerup.index = length-1;
+            setTimeout(()=>{
+                powerups.splice(length-1, 1);
+            }, 7000);
+        }
+    }
+}, 10000);
+
 function draw(){
     ctx.clearRect(0,0,300,450);
     setPlayerGravity();
     drawPlayer();
+    drawPowerups();
     if(gameStatus === "playing"){
         player.update();
+                   // check for collision with powerup
+        powerups.forEach(powerup => {
+            let {x, y} = powerup.location;
+            x -= player.position.x;
+            y -= player.position.y;
+            const distance = (new Vec2(x, y)).magnitude();
+            if(distance < powerup.radius){
+                powerup.effect();
+                powerups.splice(powerup.index, 1);
+            }
+        });
         playerProjectiles.forEach(projectile => {
             let epoch_time = Date.now()
             let y = projectile.y_loc - (epoch_time - projectile.instantiation_time)*projectile_speed_multiplier;
             drawCircle(projectile.x_loc, y, 7.5, glowColor);
         });
-
         enemyProjectiles.forEach(projectile => {
             let epoch_time = Date.now()
             let y =  -((projectile.y_loc) - (epoch_time - projectile.instantiation_time)*projectile_speed_multiplier)  - constOffset;
@@ -308,12 +374,11 @@ function draw(){
                 }
             }else{
                 if(y > 0){
-                    projectile.seen = -y; // a timing mismatch is occuring so move it over rather
+                    projectile.seen = -y;
                 }else{
                     projectile.seen = 0;
                 }
             }
-
             // check for any collisions with enemy orbs
             const proj_pos = new Vec2(projectile.x_loc, y);
             proj_pos.add(player.position.scalarProduct(-1))
@@ -321,6 +386,10 @@ function draw(){
             if(dist < player.radius){
                 // we have a collision, let the server know we have lost
                 socket.emit("winNotification");
+            }
+            // check for projectile collisions with bottom wall 
+            if(proj_pos.y > 360){
+                socket.emit('removeProjectile', projectile.instantiation_time);
             }
         });
     }
@@ -337,4 +406,5 @@ function drawCircle(x, y, radius, color){
 function drawPlayer(){
     drawCircle(player.position.x,player.position.y,player.radius, 'rgb(111, 66, 193)');
 }
+
 draw(performance.now());

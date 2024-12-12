@@ -12,6 +12,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 const port = 8080;
 const interval = 100;
+let lastRemoved : number;
 const lobbies : Lobby[] = [];
 const socketToPlayerMap : Map<string, {player_name : string, lobbyID : string}> = new Map();
 
@@ -77,8 +78,13 @@ io.on('connection', (socket) => {
         if(player_lobby){
             const {player_name, lobbyID} = player_lobby;
             const lobby = lobbies.filter((lobby) => lobby.lobbyID === lobbyID)[0];
-            const player = lobby.players.filter((p)=>{p.name === player_name})[0];
-            player.projectiles_fired = player.projectiles_fired.filter((proj) => proj.instantiation_time === instantiation_time);
+            const player = lobby.players.filter((p)=>p.name != player_name)[0]; // get the enemy player
+            if(player){
+                if(!lastRemoved || instantiation_time - lastRemoved > 100){
+                    lastRemoved = instantiation_time;
+                    player.projectiles_fired = player.projectiles_fired.filter((proj) => proj.instantiation_time > instantiation_time);
+                }
+            }
         }
    });
 
@@ -98,7 +104,7 @@ app.get('/createLobby', (req, res)=>{
     lobbies.push(lobby)
     setInterval(()=>{
         const payload = [...lobby.players, lobby.status, lobby.winner] as (string|Player|null)[];
-        io.to(lobby.lobbyID).emit("game-update", payload)
+        io.to(lobby.lobbyID).emit("game-update", payload);
     }, interval);
     res.json({
         success:true,
